@@ -1,22 +1,81 @@
 var container = $('div.container');
 
-$("#search").on('keypress', function (e) {
-    getData($("#search").val())
-    
+$("#search").keyup(function (event) {
+    getMovie($("#search").val())
 });
 
 
-function getData(data){
-    console.log(data);
+
+function getMovie(data){
+    console.log(data)
     $.ajax({
         type: 'GET',
-        url: 'https://mpcs52553-divvy.herokuapp.com/stations.json',
+        url: 'https://api.themoviedb.org/3/search/movie?api_key='+tmdb_api_key+'&query='+data,
         dataType: 'json',
-        success: handleResponse
+        success: handleMovieResponse
     });
 }
 
+function handleMovieResponse(data){
+    //console.log(data)
+    let movies = data.results
+    //console.log(movies)
+    let output = '';
+    $.each(movies, function (index, movie) {
+        //console.log(movie.title)
+        $.ajax({
+            type: 'GET',
+            url: 'https://api.themoviedb.org/3/movie/'+movie.id+'/credits?api_key='+ tmdb_api_key,
+            dataType: 'json',
+            success: handleOneMovie
+        });
+        output += `
+        <div class="row">
+          <div class="col-md-3">
+            <div class="well text-center">
+                <img src="https://image.tmdb.org/t/p/w500/${movie.poster_path}">
+            </div>
+          </div>
+          <div class="col-md-9 column-margin">
+            <h5>${movie.title} <span><h8>${$.trim(movie.release_date).substring(0, 4)}</h8></span></h5>
+            <h8><i class="fas fa-star"></i> ${movie.vote_average}</h8>
+            <p class='overview'>${movie.overview}</p>
+            <div id="${movie.id}"></div>
+          </div>
+        </div>
+        <br>
 
-function handleResponse(data){
-    
+
+        `; 
+    });
+    $('#movies').html(output);
 }
+
+
+function handleOneMovie(data){
+    console.log(data)
+    let output = ''
+    let cast = data.cast
+    let director = $.grep(data.crew, function (obj) {
+        return obj.job === "Director";
+    });
+    console.log(director[0].name)
+    output += `
+    <h8>Directed by: ${director[0].name}</h8>
+    `
+    let cast_num = 5
+    let count = 0
+    output += '<p>Cast: '
+    $.each(data.cast, function(index, actor){
+        if (count === cast_num) return false
+        output += `${actor.name}, `
+    count++
+    });
+    output = output.substring(0,output.length-2)
+    output += '</p'
+
+    $('#'+data.id).html(output);
+
+}
+
+
