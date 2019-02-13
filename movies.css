@@ -1,0 +1,13 @@
+  
+  #movies .col-md-3 img{
+    height:240px;
+  }
+
+  @media (max-width: 600px) {
+  .column-margin {
+    margin: 25px 50px 0px 50px;
+  }
+}
+.overview{
+     text-align: justify;
+}
