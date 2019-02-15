@@ -3,7 +3,7 @@ var container = $('div.container');
 $('input#get').click(getData);
 
 function getData(){
-    console.log('get here');
+    //console.log('get here');
     $.ajax({
         type: 'GET',
         url: 'https://mpcs52553-divvy.herokuapp.com/stations.json',
@@ -14,6 +14,7 @@ function getData(){
 
 
 function handleResponse(data) {
+    //console.log(data)
     var smallData = data.map(function (d, i) {
         return {
             stationName: d.stationName,
@@ -30,18 +31,18 @@ function getLocation(geoData) {
     navigator.geolocation.getCurrentPosition(function (data) { handleLocation(data, geoData) });
 }
 
-function distance(lat1, lon1, lat2, lon2) {
-    var radlat1 = Math.PI * lat1 / 180
-    var radlat2 = Math.PI * lat2 / 180
-    var radlon1 = Math.PI * lon1 / 180
-    var radlon2 = Math.PI * lon2 / 180
-    var theta = lon1 - lon2
-    var radtheta = Math.PI * theta / 180
-    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-    dist = Math.acos(dist)
-    dist = dist * 180 / Math.PI
-    dist = dist * 60 * 1.1515
-    return dist
+function getDist(la1, lo1, la2, lo2) {
+    let rdla1 = Math.PI * la1 / 180
+    let rdlo1 = Math.PI * lo1 / 180
+    let rdla2 = Math.PI * la2 / 180
+    let rdlo2 = Math.PI * lo2 / 180
+    let lo_diff = lo1 - lo2
+    let rd = Math.PI * lo_diff / 180
+    let val = Math.cos(rdla1) * Math.cos(rdla2) * Math.cos(rd) + Math.sin(rdla1) * Math.sin(rdla2);
+    val = Math.acos(val)
+    val = val / Math.PI * 180 
+    val = val * 1.15 * 60 
+    return val;
 }
 
 function SortDistance(a, b) {
@@ -63,25 +64,17 @@ function handleLocation(data, geoData) {
     };
 
     $.each(geoData, function (index, item) {
-        geoData[index].distance = distance(item.latitude, item.longitude, currentlatitude, currentlongitude)
+        geoData[index].distance = getDist(item.latitude, item.longitude, currentlatitude, currentlongitude)
     });
 
-    console.log(geoData)
-/**
-    var spots = {}
-    $.each(geoData, function (index, item) {
-        spots[item.stationName] = { latitude: item.latitude, longitude: item.longitude, 
-            availableBikes: item.availableBikes, distance: distance(item.latitude, item.longitude, currentlatitude, currentlongitude )}
-    })
-    console.log(spots)
- */
-
-    console.log(Array.isArray(geoData))
+    //console.log(Array.isArray(geoData))
 
     geoData.sort(SortDistance)
     console.log(geoData)
-    
-    container.append('Location: ' + geoData[0].stationName + ', Number of Available Bikes: ' + geoData[0].availableBikes)
-    container.append('<br/></br>');
-
+    let location = ''
+    let number = ''
+    location += `Location: ${geoData[0].stationName}`
+    $('#location').html(location);
+    number += `Available Bikes: ${geoData[0].availableBikes}`
+    $('#number').html(number);
 }

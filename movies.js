@@ -1,4 +1,3 @@
-var container = $('div.container');
 
 $("#search").keyup(function (event) {
     getMovie($("#search").val())
